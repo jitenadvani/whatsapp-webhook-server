@@ -50,3 +50,9 @@ app.post('/webhook/meta-webhook-verify', async (req, res) => {
 
   res.sendStatus(200);
 });
+
+// ✅ Add this to make Render detect the port and start the server
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`🚀 Server is running on port ${PORT}`);
+});
