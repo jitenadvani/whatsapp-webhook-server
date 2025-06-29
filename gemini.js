@@ -1,16 +1,20 @@
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+const { GoogleGenerativeAI } = require("@google/generative-ai");
 
-// ✅ Use your actual Gemini API key
-const genAI = new GoogleGenerativeAI("AIzaSyDW9AoceTX3lLNUO66i4we9M7IOwps28Rg");
+// Replace with your real API key
+const genAI = new GoogleGenerativeAI("AIzaSyCN0R0Nj4O9e0m6C_U8E47beUZF6nN8zXs");
 
 async function getGeminiReply(userMessage) {
-  const model = genAI.getGenerativeModel({
-    model: "models/gemini-1.5-flash",  // ✅ Correct model name
-  });
+  try {
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-  const result = await model.generateContent(userMessage);
-  const response = await result.response;
-  return response.text();
+    const result = await model.generateContent(userMessage);
+    const response = await result.response;
+    const text = response.text();
+    return text;
+  } catch (error) {
+    console.error("❌ Gemini AI Error:", error.message);
+    return "Sorry! I’m having trouble replying right now.";
+  }
 }
 
 module.exports = { getGeminiReply };
