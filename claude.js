@@ -1,3 +1,4 @@
+require('dotenv').config();
 const axios = require('axios');
 
 // ✅ Replace with your actual OpenRouter API Key
