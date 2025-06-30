@@ -1,5 +1,8 @@
 require('dotenv').config();
 const axios = require('axios');
+console.log("🔑 Using model:", process.env.OPENROUTER_MODEL);
+console.log("🔐 Using API key:", OPENROUTER_API_KEY?.slice(0, 10) + '...'); // Masked
+
 
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
 
