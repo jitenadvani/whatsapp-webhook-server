@@ -1,13 +1,15 @@
+require('dotenv').config(); // Make sure this is at the top
 const express = require('express');
 const axios = require('axios');
-const { getClaudeReply } = require('./claude');  // Import Claude function
+const { getClaudeReply } = require('./claude');
 
 const app = express();
 app.use(express.json());
 
-// ✅ REQUIRED WhatsApp credentials
-const token = "EAAQSlT1AYOMBO83GjfUgSfOKgw6lnMF940mKb0bnfYqBVuwnA2ZCc0Br3yyYgRZA3YjERQ1YQUsrdp6qTIYgNv17xabGZCr0izCoEcR1O4Ct8j44sZBkP2kjZCZANp9Sep62J4JMgKMkezYaFbAyaIkc2FRBYZAdKHx0gsa6Gf8OKbwGhjNCcZAU780204WDu41mUo1flsXbJnaRGn1JNBRiJPv5aQlhzL17XaBuj9CXKnsyW98ZD";
-const phone_number_id = "732087066645473"; // Your test/real phone number ID
+// ✅ Load WhatsApp credentials from .env
+const token = process.env.WHATSAPP_TOKEN;
+const phone_number_id = process.env.PHONE_NUMBER_ID;
+
 
 // ✅ Webhook Verification
 app.get('/webhook/meta-webhook-verify', (req, res) => {
