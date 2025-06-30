@@ -2,7 +2,7 @@ require('dotenv').config();
 const axios = require('axios');
 
 // ✅ Use API key from .env file
-const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
+const OPENROUTER_API_KEY1 = process.env.OPENROUTER_API_KEY1;
 
 async function getClaudeReply(userMessage) {
   try {
@@ -23,7 +23,7 @@ async function getClaudeReply(userMessage) {
       },
       {
         headers: {
-          "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
+          "Authorization": `Bearer ${OPENROUTER_API_KEY1}`,
           "Content-Type": "application/json"
         },
         timeout: 10000
