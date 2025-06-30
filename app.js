@@ -1,42 +1,88 @@
 require('dotenv').config();
+const express = require('express');
 const axios = require('axios');
+const { getOpenAIReply } = require('./openai');
 
-const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
+const app = express();
+app.use(express.json());
 
-async function getOpenAIReply(userMessage) {
+const token = process.env.WHATSAPP_TOKEN;
+const phone_number_id = process.env.PHONE_NUMBER_ID;
+
+// Webhook Verification
+app.get('/webhook/meta-webhook-verify', (req, res) => {
+  const mode = req.query["hub.mode"];
+  const challenge = req.query["hub.challenge"];
+  const verify_token = req.query["hub.verify_token"];
+
+  if (mode === "subscribe" && verify_token === "jitenToken") {
+    console.log("✅ Webhook Verified!");
+    res.status(200).send(challenge);
+  } else {
+    res.sendStatus(403);
+  }
+});
+
+// Webhook Message Handler
+app.post('/webhook/meta-webhook-verify', async (req, res) => {
+  const msg = req.body?.entry?.[0]?.changes?.[0]?.value?.messages?.[0];
+  const from = msg?.from;
+  const userMessage = msg?.text?.body;
+
+  if (msg?.type !== "text" || !userMessage) {
+    console.log("⚠️ Ignored non-text or empty message.");
+    return res.sendStatus(200);
+  }
+
   try {
-    console.log("🔑 Using model:", process.env.OPENROUTER_MODEL);
-    console.log("🔐 Using API key prefix:", OPENROUTER_API_KEY?.slice(0, 10) + "...");
+    const botReply = await getOpenAIReply(
+      `User said: ${userMessage}. Reply as a smart and polite salon assistant offering help with booking or services.`
+    );
 
-    const response = await axios.post(
-      "https://openrouter.ai/api/v1/chat/completions",
+    await axios.post(
+      `https://graph.facebook.com/v19.0/${phone_number_id}/messages`,
       {
-        model: process.env.OPENROUTER_MODEL, // ✅ dynamic from .env
-        messages: [
-          {
-            role: "system",
-            content: "You are a helpful salon assistant. Help users with appointments, services, prices, etc., politely."
-          },
-          {
-            role: "user",
-            content: userMessage
-          }
-        ]
+        messaging_product: "whatsapp",
+        to: from,
+        type: "text",
+        text: { body: botReply },
       },
       {
         headers: {
-          Authorization: `Bearer ${OPENROUTER_API_KEY}`,
-          "Content-Type": "application/json"
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
         },
-        timeout: 10000
       }
     );
 
-    return response?.data?.choices?.[0]?.message?.content?.trim() || "Sorry, no reply available.";
+    console.log(`📤 Reply sent to ${from}: ${botReply}`);
   } catch (error) {
-    console.error("❌ OpenAI Error:", error.response?.data || error.message);
-    return "Sorry! I can't reply right now.";
-  }
-}
+    console.error("❌ OpenAI Error:", error.message);
 
-module.exports = { getOpenAIReply };
+    await axios.post(
+      `https://graph.facebook.com/v19.0/${phone_number_id}/messages`,
+      {
+        messaging_product: "whatsapp",
+        to: from,
+        type: "text",
+        text: {
+          body: "Sorry! I'm having trouble replying right now. Please try again later.",
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+  }
+
+  res.sendStatus(200);
+});
+
+// Start server
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`🚀 Server is running on port ${PORT}`);
+});

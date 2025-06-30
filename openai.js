@@ -1,17 +1,15 @@
 require('dotenv').config();
 const axios = require('axios');
-console.log("🔑 Using model:", process.env.OPENROUTER_MODEL);
-console.log("🔐 Using API key:", OPENROUTER_API_KEY?.slice(0, 10) + '...'); // Masked
-
 
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
+const OPENROUTER_MODEL = process.env.OPENROUTER_MODEL;
 
 async function getOpenAIReply(userMessage) {
   try {
     const response = await axios.post(
       "https://openrouter.ai/api/v1/chat/completions",
       {
-        model: "openai/gpt-4o-mini", // ✅ Using GPT-4o-mini via OpenRouter
+        model: OPENROUTER_MODEL,
         messages: [
           {
             role: "system",
@@ -25,16 +23,15 @@ async function getOpenAIReply(userMessage) {
       },
       {
         headers: {
-          "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
+          Authorization: `Bearer ${OPENROUTER_API_KEY}`,
           "Content-Type": "application/json"
-        },
-        timeout: 10000
+        }
       }
     );
 
     return response?.data?.choices?.[0]?.message?.content?.trim() || "Sorry, no reply available.";
   } catch (error) {
-    console.error("❌ GPT Error:", error.response?.data || error.message);
+    console.error("❌ OpenAI Error:", error.response?.data || error.message);
     return "Sorry! I can't reply right now.";
   }
 }
