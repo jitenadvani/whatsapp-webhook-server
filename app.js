@@ -1,7 +1,7 @@
 require('dotenv').config(); // Make sure this is at the top
 const express = require('express');
 const axios = require('axios');
-const { getClaudeReply } = require('./claude');
+const { getOpenAIReply } = require('./openai'); // ✅ Changed function name and file name
 
 const app = express();
 app.use(express.json());
@@ -9,7 +9,6 @@ app.use(express.json());
 // ✅ Load WhatsApp credentials from .env
 const token = process.env.WHATSAPP_TOKEN;
 const phone_number_id = process.env.PHONE_NUMBER_ID;
-
 
 // ✅ Webhook Verification
 app.get('/webhook/meta-webhook-verify', (req, res) => {
@@ -41,7 +40,7 @@ app.post('/webhook/meta-webhook-verify', async (req, res) => {
   }
 
   try {
-    const botReply = await getClaudeReply(
+    const botReply = await getOpenAIReply(
       `User said: ${userMessage}. Reply as a smart and polite salon assistant offering help with booking or services.`
     );
 
@@ -63,7 +62,7 @@ app.post('/webhook/meta-webhook-verify', async (req, res) => {
 
     console.log(`📤 Reply sent to ${from}: ${botReply}`);
   } catch (error) {
-    console.error("❌ Claude AI Error:", error.message);
+    console.error("❌ OpenAI Error:", error.message); // ✅ Updated error label
 
     await axios.post(
       `https://graph.facebook.com/v19.0/${phone_number_id}/messages`,
@@ -90,14 +89,3 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`🚀 Server is running on port ${PORT}`);
 });
-
-
-
-
-
-
-
-
-
-
-
