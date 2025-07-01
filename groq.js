@@ -1,19 +1,19 @@
 require('dotenv').config();
 const axios = require('axios');
 
-const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
-const OPENROUTER_MODEL = process.env.OPENROUTER_MODEL;
+const GROQ_API_KEY = process.env.GROQ_API_KEY;
+const GROQ_MODEL = process.env.GROQ_MODEL;
 
-async function getOpenAIReply(userMessage) {
+async function getGroqReply(userMessage) {
   try {
     const response = await axios.post(
-      "https://openrouter.ai/api/v1/chat/completions",
+      "https://api.groq.com/openai/v1/chat/completions",
       {
-        model: OPENROUTER_MODEL,
+        model: GROQ_MODEL,
         messages: [
           {
             role: "system",
-            content: "You are a helpful salon assistant. Help users with appointments, services, prices, etc., politely."
+            content: "You are a helpful salon assistant. Help users with appointments, services, and questions politely."
           },
           {
             role: "user",
@@ -23,17 +23,18 @@ async function getOpenAIReply(userMessage) {
       },
       {
         headers: {
-          Authorization: `Bearer ${OPENROUTER_API_KEY}`,
+          Authorization: `Bearer ${GROQ_API_KEY}`,
           "Content-Type": "application/json"
-        }
+        },
+        timeout: 10000
       }
     );
 
     return response?.data?.choices?.[0]?.message?.content?.trim() || "Sorry, no reply available.";
   } catch (error) {
-    console.error("❌ OpenAI Error:", error.response?.data || error.message);
+    console.error("❌ Groq AI Error:", error.response?.data || error.message);
     return "Sorry! I can't reply right now.";
   }
 }
 
-module.exports = { getOpenAIReply };
+module.exports = { getGroqReply };

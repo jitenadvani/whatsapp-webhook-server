@@ -1,7 +1,7 @@
-require('dotenv').config();
+require('dotenv').config(); // Load .env config
 const express = require('express');
 const axios = require('axios');
-const { getOpenAIReply } = require('./openai');
+const { getGroqReply } = require('./groq'); // ✅ Groq model reply function
 
 const app = express();
 app.use(express.json());
@@ -9,7 +9,7 @@ app.use(express.json());
 const token = process.env.WHATSAPP_TOKEN;
 const phone_number_id = process.env.PHONE_NUMBER_ID;
 
-// Webhook Verification
+// ✅ Webhook Verification
 app.get('/webhook/meta-webhook-verify', (req, res) => {
   const mode = req.query["hub.mode"];
   const challenge = req.query["hub.challenge"];
@@ -23,9 +23,13 @@ app.get('/webhook/meta-webhook-verify', (req, res) => {
   }
 });
 
-// Webhook Message Handler
+// ✅ Webhook Message Handler
 app.post('/webhook/meta-webhook-verify', async (req, res) => {
-  const msg = req.body?.entry?.[0]?.changes?.[0]?.value?.messages?.[0];
+  const body = req.body;
+  console.log("📨 Webhook received:");
+  console.dir(body, { depth: null });
+
+  const msg = body?.entry?.[0]?.changes?.[0]?.value?.messages?.[0];
   const from = msg?.from;
   const userMessage = msg?.text?.body;
 
@@ -35,7 +39,7 @@ app.post('/webhook/meta-webhook-verify', async (req, res) => {
   }
 
   try {
-    const botReply = await getOpenAIReply(
+    const botReply = await getGroqReply(
       `User said: ${userMessage}. Reply as a smart and polite salon assistant offering help with booking or services.`
     );
 
@@ -57,7 +61,7 @@ app.post('/webhook/meta-webhook-verify', async (req, res) => {
 
     console.log(`📤 Reply sent to ${from}: ${botReply}`);
   } catch (error) {
-    console.error("❌ OpenAI Error:", error.message);
+    console.error("❌ Groq Error:", error.message);
 
     await axios.post(
       `https://graph.facebook.com/v19.0/${phone_number_id}/messages`,
@@ -66,7 +70,7 @@ app.post('/webhook/meta-webhook-verify', async (req, res) => {
         to: from,
         type: "text",
         text: {
-          body: "Sorry! I'm having trouble replying right now. Please try again later.",
+          body: "Sorry! I'm having trouble replying right now. Please try again later."
         },
       },
       {
@@ -81,7 +85,7 @@ app.post('/webhook/meta-webhook-verify', async (req, res) => {
   res.sendStatus(200);
 });
 
-// Start server
+// ✅ Start the server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`🚀 Server is running on port ${PORT}`);
